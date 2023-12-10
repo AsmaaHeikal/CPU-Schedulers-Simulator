@@ -28,6 +28,11 @@ class Process {
     }
 }
 
+//Non-Preemptive Shortest-Job First (SJF) (using context switching)
+class SJF{
+
+}
+
 public class SchedulersSimulator {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
