@@ -6,6 +6,8 @@ class Process {
     int arrivalTime;
     int burstTime;
     int priorityNumber;
+
+    int AGFactor = 0;
     public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber) {
         this.name = name;
         this.color = color;
@@ -91,6 +93,54 @@ class SJF{
     }
 }
 
+
+class AGSchedule {
+
+    int time;
+    ArrayList<Process> processes;
+
+    public AGSchedule(ArrayList<Process> processes) {
+        this.processes = processes;
+    }
+
+    int minimumNumber(){
+        int min = processes.get(0).arrivalTime;
+        for (int i=1;i<processes.size();i++){
+            if(processes.get(i).arrivalTime < min){
+                min = processes.get(i).arrivalTime;
+            }
+        }
+        return min;
+    }
+
+    void execute(){
+        for (int i = 0; i< processes.size();i++){
+
+        }
+    }
+    int random(){
+        return (int) (Math.random() * 20);
+    }
+
+    int AGFactor(Process process){
+        int rund = random();
+        if(rund == 10){
+            return process.priorityNumber + process.arrivalTime + process.burstTime;
+        }
+        else if(rund < 10){
+            return rund + process.arrivalTime + process.burstTime;
+        }
+        else{
+            return 10 + process.burstTime + process.arrivalTime;
+        }
+    }
+
+
+
+
+
+}
+
 public class SchedulersSimulator {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -100,16 +150,18 @@ public class SchedulersSimulator {
         int timeQuantum = scanner.nextInt();
         System.out.print("Enter context switching time: ");
         int contextSwitching = scanner.nextInt();
+
         ArrayList<Process> processes = new ArrayList<>();
         for (int i = 0; i < numProcesses; i++) {
             Process process = new Process("", "", 0, 0, 0);
             System.out.println("----------Process "+(i+1)+"----------");
             process.getProcessInfo();
+
             processes.add(process);
         }
-        System.out.println("--------------------------SJF--------------------------");
-        SJF sjf = new SJF(processes, contextSwitching);
-        sjf.execute();
-        System.out.println("-------------------------------------------------------");
+//        System.out.println("--------------------------SJF--------------------------");
+//        SJF sjf = new SJF(processes, contextSwitching);
+//        sjf.execute();
+//        System.out.println("-------------------------------------------------------");
     }
 }
