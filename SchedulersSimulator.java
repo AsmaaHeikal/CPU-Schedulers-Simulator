@@ -148,7 +148,7 @@ class AGSchedule {
                     }
                 }
             }
-            if(processInCPU.quantumTime == 0){
+            if(oldTimeQuantum == 0){
 
             } else if(processInCPU.burstTime==0){
 
