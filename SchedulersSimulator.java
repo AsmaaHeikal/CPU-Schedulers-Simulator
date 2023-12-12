@@ -6,14 +6,16 @@ class Process {
     int arrivalTime;
     int burstTime;
     int priorityNumber;
+    int quantumTime;
 
     int AGFactor = 0;
-    public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber) {
+    public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber, int quantumTime) {
         this.name = name;
         this.color = color;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.priorityNumber = priorityNumber;
+        this.quantumTime = quantumTime;
     }
     void getProcessInfo(){
         System.out.print("Enter the process name: ");
@@ -95,34 +97,77 @@ class SJF{
 
 
 class AGSchedule {
-
-    int time;
+    int time = 0;
+    int oldTimeQuantum;
     ArrayList<Process> processes;
+    Queue<Process> readyQueue;
+    Process processInCPU;
 
-    public AGSchedule(ArrayList<Process> processes) {
+
+    public AGSchedule(ArrayList<Process> processes, int timeQuantum) {
         this.processes = processes;
+        this.time=timeQuantum;
     }
 
-    int minimumNumber(){
-        int min = processes.get(0).arrivalTime;
-        for (int i=1;i<processes.size();i++){
-            if(processes.get(i).arrivalTime < min){
-                min = processes.get(i).arrivalTime;
+    int minimumAGFactor(){
+        int i,min = processes.get(0).AGFactor;
+        for (i=1;i<processes.size();i++){
+            if(processes.get(i).AGFactor < min){
+                min = processes.get(i).AGFactor;
             }
         }
-        return min;
+        return i;
     }
 
     void execute(){
-        for (int i = 0; i< processes.size();i++){
+        while (true) {
+            if (processes.get(minimumAGFactor()).AGFactor < processInCPU.AGFactor) {
+                for (int i = 0; i < processes.size(); i++) {
+                    if (time >= processes.get(i).arrivalTime ) {
+                        if (processInCPU == null){
+                            processInCPU = processes.get(i);
+                            oldTimeQuantum=processInCPU.quantumTime;
+                            processInCPU.quantumTime /= 2 ;
+                            time += processInCPU.quantumTime;
+                            break;
+                        }
+                        if (processes.get(i).AGFactor < processInCPU.AGFactor) {
+                            processInCPU.burstTime -= processInCPU.quantumTime;
+                            oldTimeQuantum += processInCPU.quantumTime;
+                            processInCPU.quantumTime = oldTimeQuantum;
+                            readyQueue.add(processInCPU);
+                            oldTimeQuantum=processInCPU.quantumTime;
+                            processInCPU=processes.get(i);
+                            processInCPU.quantumTime /= 2 ;
+                            time += processInCPU.quantumTime;
+                            processes.remove(i);
+                            break;
+                        } else {
+                            readyQueue.add(processes.get(i));
+                        }
+                    }
+                }
+            }
+            if(processInCPU.quantumTime == 0){
+
+            } else if(processInCPU.burstTime==0){
+
+            } else {
+                time += 1;
+            }
+
+            if(processes.size() == 0 && readyQueue.size() ==0) {
+                break;
+            }
 
         }
+
     }
-    int random(){
+    static int random(){
         return (int) (Math.random() * 20);
     }
 
-    int AGFactor(Process process){
+    static int AGFactor(Process process){
         int rund = random();
         if(rund == 10){
             return process.priorityNumber + process.arrivalTime + process.burstTime;
@@ -134,6 +179,7 @@ class AGSchedule {
             return 10 + process.burstTime + process.arrivalTime;
         }
     }
+
 
 
 
@@ -156,9 +202,11 @@ public class SchedulersSimulator {
             Process process = new Process("", "", 0, 0, 0);
             System.out.println("----------Process "+(i+1)+"----------");
             process.getProcessInfo();
-
+            process.AGFactor = AGSchedule.AGFactor(process);
             processes.add(process);
         }
+
+        AGSchedule agSchedule=new AGSchedule(processes, timeQuantum);
 //        System.out.println("--------------------------SJF--------------------------");
 //        SJF sjf = new SJF(processes, contextSwitching);
 //        sjf.execute();
