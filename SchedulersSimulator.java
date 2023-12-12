@@ -98,71 +98,96 @@ class SJF{
 
 class AGSchedule {
     int time = 0;
-    int oldTimeQuantum;
+    int currTimeQuantum;
     ArrayList<Process> processes;
+    ArrayList<Process> arrived;
     Queue<Process> readyQueue;
+
     Process processInCPU;
 
 
     public AGSchedule(ArrayList<Process> processes, int timeQuantum) {
         this.processes = processes;
-        this.time=timeQuantum;
+        this.time = timeQuantum;
     }
 
-    int minimumAGFactor(){
-        int i,min = processes.get(0).AGFactor;
-        for (i=1;i<processes.size();i++){
-            if(processes.get(i).AGFactor < min){
-                min = processes.get(i).AGFactor;
+    int minimumAGFactor() {
+        int i = -1, min = arrived.get(0).AGFactor;
+        for (i = 1; i < arrived.size(); i++) {
+            if (arrived.get(i).AGFactor < min) {
+                min = arrived.get(i).AGFactor;
             }
         }
         return i;
     }
 
-    void execute(){
+    void execute() {
         while (true) {
-            if (processes.get(minimumAGFactor()).AGFactor < processInCPU.AGFactor) {
-                for (int i = 0; i < processes.size(); i++) {
-                    if (time >= processes.get(i).arrivalTime ) {
-                        if (processInCPU == null){
-                            processInCPU = processes.get(i);
-                            oldTimeQuantum=processInCPU.quantumTime;
-                            processInCPU.quantumTime /= 2 ;
-                            time += processInCPU.quantumTime;
-                            break;
-                        }
-                        if (processes.get(i).AGFactor < processInCPU.AGFactor) {
-                            processInCPU.burstTime -= processInCPU.quantumTime;
-                            oldTimeQuantum += processInCPU.quantumTime;
-                            processInCPU.quantumTime = oldTimeQuantum;
-                            readyQueue.add(processInCPU);
-                            oldTimeQuantum=processInCPU.quantumTime;
-                            processInCPU=processes.get(i);
-                            processInCPU.quantumTime /= 2 ;
-                            time += processInCPU.quantumTime;
-                            processes.remove(i);
-                            break;
-                        } else {
-                            readyQueue.add(processes.get(i));
-                        }
-                    }
+            for (int i = 0; i < processes.size(); i++) {
+                if (time >= processes.get(i).arrivalTime) {
+                    arrived.add(processes.get(i));
+                    processes.remove(i);
+                    i--;
                 }
             }
-            if(oldTimeQuantum == 0){
 
-            } else if(processInCPU.burstTime==0){
+            if (processInCPU == null) {
+                processInCPU = arrived.remove(minimumAGFactor());
+                currTimeQuantum = processInCPU.quantumTime / 2;
+                time += currTimeQuantum;
+                continue;
+            }
 
+            if (minimumAGFactor() != -1 && arrived.get(minimumAGFactor()).AGFactor < processInCPU.AGFactor) {
+                if (currTimeQuantum != 0) {
+                    processInCPU.burstTime -= currTimeQuantum;
+                    processInCPU.quantumTime += currTimeQuantum;
+                    readyQueue.add(processInCPU);
+                    processInCPU = arrived.remove(minimumAGFactor());
+                    currTimeQuantum = processInCPU.quantumTime / 2;
+                    for (int i = 0; i < arrived.size(); i++) {
+                        readyQueue.add(arrived.remove(i));
+                        i--;
+                    }
+                    time += currTimeQuantum;
+                    continue;
+                }
             } else {
-                time += 1;
+                for (int i = 0; i < arrived.size(); i++) {
+                    readyQueue.add(arrived.remove(i));
+                    i--;
+                }
             }
 
-            if(processes.size() == 0 && readyQueue.size() ==0) {
-                break;
-            }
+        if (processInCPU.quantumTime == 0) {
+            try {
+                Process temp = processInCPU;
+                processInCPU = readyQueue.remove();
+                processInCPU.quantumTime += (int) Math.ceil(mean()*0.1);
+                readyQueue.add(temp);
+            } catch (NoSuchElementException e){}
 
+        } else if (processInCPU.burstTime == 0 ) {
+            processInCPU.quantumTime = 0;
+            if (readyQueue.size() > 0) {
+                  processInCPU = readyQueue.remove();
+            }
+        } else {
+            currTimeQuantum -= 1;
+            time += 1;
         }
 
+        if (processInCPU == null && processes.size() == 0 && readyQueue.size() == 0) {
+            break;
+        }
+
+
     }
+
+
+}
+
+
     static int random(){
         return (int) (Math.random() * 20);
     }
@@ -178,6 +203,15 @@ class AGSchedule {
         else{
             return 10 + process.burstTime + process.arrivalTime;
         }
+    }
+
+     double mean(){
+        double m = 0;
+        for (int i = 0; i < arrived.size(); i++) {
+            m+=arrived.get(i).quantumTime;
+        }
+        m /= arrived.size();
+        return m;
     }
 
 
