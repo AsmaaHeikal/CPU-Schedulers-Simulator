@@ -199,7 +199,7 @@ public class SchedulersSimulator {
 
         ArrayList<Process> processes = new ArrayList<>();
         for (int i = 0; i < numProcesses; i++) {
-            Process process = new Process("", "", 0, 0, 0);
+            Process process = new Process("", "", 0, 0, 0, 0);
             System.out.println("----------Process "+(i+1)+"----------");
             process.getProcessInfo();
             process.AGFactor = AGSchedule.AGFactor(process);
