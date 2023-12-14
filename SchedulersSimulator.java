@@ -164,7 +164,20 @@ class AGSchedule {
         }
     }
 
+    void print(ArrayList<Integer> arr, ArrayList<Integer> wait){
+        for (int i = 0;i< arr.size();++i){
+            System.out.println();
+        }
+
+
+    }
+
     void execute() {
+
+
+        ArrayList<Integer> turnAroundTime = new ArrayList<>();
+        ArrayList<Integer> waitingTime = new ArrayList<>();
+
         int lastProcessIdx = 0;
         int curTime = 0;
         int lastExecuteTime = 0;
@@ -177,7 +190,6 @@ class AGSchedule {
             while (lastProcessIdx < processes.size() && processes.get(lastProcessIdx).arrivalTime <= curTime) {
                 processes.get(lastProcessIdx).AGFactor = AGFactor(processes.get(lastProcessIdx));
                 curProcess.add(processes.get(lastProcessIdx));
-//                 AGFactor(processes.get(lastProcessIdx));
                 lastProcessIdx++;
             }
             // todo: all new processes should be added to queueProcess, except the smallest AGFactor one,
@@ -208,11 +220,11 @@ class AGSchedule {
                 int rlExecuteTime = Math.min(halfTime, currentProcess.burstTime);
                 currentProcess.burstTime -= rlExecuteTime;
                 lastExecuteTime = rlExecuteTime;
-                System.out.println(curTime);
+//                System.out.println(curTime);
                 curTime += rlExecuteTime;
                 fTimeForCurrentProcess = false;
-                System.out.println(currentProcess.name);
-                System.out.println(curTime);
+//                System.out.println(currentProcess.name);
+//                System.out.println(curTime);
             } else { // There is a process executing in preemptive
 
                 if (currentProcess.AGFactor > minProcess.AGFactor) {
@@ -236,7 +248,7 @@ class AGSchedule {
 //                    queueProcess.add(currentProcess);
                     currentProcess = minProcess;
                     fTimeForCurrentProcess = true;
-                    System.out.println(currentProcess.name);
+//                    System.out.println(currentProcess.name);
                 }
                 else { // currentProcess will continue executing, in preemptive
 
@@ -246,6 +258,13 @@ class AGSchedule {
                         currentProcess.quantumTime = 0;
                         if(!diedList.contains(currentProcess)){
                             diedList.add(currentProcess);
+                            int t = (curTime-currentProcess.arrivalTime);
+                            System.out.println(currentProcess.name + "Turn around time: " + (t));
+                            System.out.println(currentProcess.name + "Waiting time: "+(t - currentProcess.burstTime) );
+
+                            turnAroundTime.add(t);
+                            waitingTime.add(t - currentProcess.burstTime);
+
                         }
 
                         curProcess.remove(currentProcess);
@@ -305,12 +324,12 @@ class AGSchedule {
 
 
                     // currentProcess will execute for one second
-                    System.out.println(curTime);
-                    System.out.println(currentProcess.name);
+//                    System.out.println(curTime);
+//                    System.out.println(currentProcess.name);
                     curTime++;
                     currentProcess.burstTime -= 1;
                     lastExecuteTime += 1;
-                    System.out.println(curTime);
+//                    System.out.println(curTime);
 
 
 
@@ -318,6 +337,25 @@ class AGSchedule {
                 }
             }
         }
+        int avgAroundTime=0;
+        for (Integer value : turnAroundTime) {
+            avgAroundTime += value;
+        }
+        System.out.println("Average turn around time = " + (avgAroundTime/turnAroundTime.size()));
+
+        int avgwaitingTime=0;
+
+        for (Integer integer : waitingTime) {
+            avgwaitingTime += integer;
+        }
+        System.out.println("Average waiting time = " + (avgwaitingTime/waitingTime.size()));
+
+
+        System.out.println("Execution order: ");
+        for (Process process : diedList) {
+            System.out.println(process);
+        }
+//        print(turnAroundTime);
     }
 }
 
