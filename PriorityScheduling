@@ -1,0 +1,227 @@
+import java.util.*;
+import static java.util.Collections.sort;
+
+class Process   {
+    String name;
+    String color;
+    int arrivalTime;
+    int burstTime;
+    int currenttime ;
+    int waitingtime ;
+    int priorityNumber;
+    int turnaroundtime ;
+    public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber) {
+        this.name = name;
+        this.color = color;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.priorityNumber = priorityNumber;
+    }
+    void getProcessInfo(){
+        System.out.print("Enter the process name: ");
+        Scanner scanner = new Scanner(System.in);
+        name = scanner.nextLine();
+        System.out.print("Enter the process color: ");
+        color = scanner.nextLine();
+        System.out.print("Enter the process arrival time: ");
+        arrivalTime = scanner.nextInt();
+        System.out.print("Enter the process burst time: ");
+        burstTime = scanner.nextInt();
+        System.out.print("Enter the process priority number: ");
+        priorityNumber = scanner.nextInt();
+    }
+    public int getPriorityNumber() {
+        return priorityNumber;
+    }
+}
+
+//Non-Preemptive Shortest-Job First (SJF) (using context switching)
+class SJF{
+    ArrayList<Process> processes;
+    int contextSwitching;
+    public SJF(ArrayList<Process> processes, int contextSwitching) {
+        this.processes = processes;
+        this.contextSwitching = contextSwitching;
+    }
+    //Sort the processes according to their arrival time and
+    // if equal then according to their burst time
+    void sortProcesses(){
+        Collections.sort(processes, new Comparator<Process>() {
+            @Override
+            public int compare(Process o1, Process o2) {
+                if(o1.arrivalTime == o2.arrivalTime){
+                    return o1.burstTime - o2.burstTime;
+                }
+                return o1.arrivalTime - o2.arrivalTime;
+            }
+        });
+    }
+    void execute(){
+        sortProcesses();
+        System.out.println("----------Processes execution order----------");
+        for(int i = 0; i < processes.size(); i++){
+            System.out.print(processes.get(i).name+" ");
+        }
+        System.out.println();
+        ArrayList<Integer>processesWaitingTime = new ArrayList<>();
+        ArrayList<Integer>processesTurnaroundTime = new ArrayList<>();
+        //print the waiting time for each process
+        System.out.println("----------Waiting time for each process----------");
+        int time = 0;
+        for(int i = 0; i < processes.size(); i++){
+            System.out.print((time - processes.get(i).arrivalTime)+" ");
+            processesWaitingTime.add(time - processes.get(i).arrivalTime);
+            time += processes.get(i).burstTime + contextSwitching;
+        }
+        //print the turnaround time for each process
+        //turnaround time = waiting time + burst time
+        System.out.println();
+        System.out.println("----------Turnaround time for each process----------");
+        time = 0;
+        for(int i = 0; i < processes.size(); i++){
+            System.out.print((time - processes.get(i).arrivalTime + processes.get(i).burstTime)+" ");
+            processesTurnaroundTime.add(time - processes.get(i).arrivalTime + processes.get(i).burstTime);
+            time += processes.get(i).burstTime + contextSwitching;
+        }
+        System.out.println();
+        //print the average waiting time
+        int sum = 0;
+        for(int i = 0; i < processesWaitingTime.size(); i++){
+            sum += processesWaitingTime.get(i);
+        }
+        System.out.println("Average waiting time: "+(sum/processesWaitingTime.size()));
+        //print the average turnaround time
+        sum = 0;
+        for(int i = 0; i < processesTurnaroundTime.size(); i++){
+            sum += processesTurnaroundTime.get(i);
+        }
+        System.out.println("Average turnaround time: "+(sum/processesTurnaroundTime.size()));
+    }
+}
+class PriorityScheduling
+{
+    ArrayList<Process> processes;
+    public PriorityScheduling(ArrayList<Process> processes)
+    {
+        this.processes = processes;
+    }
+    // Sort according to priority time
+    // if equal then according to arrival time
+
+    void sortProcesses()
+    {
+        Collections.sort(processes, new Comparator<Process>() {
+            @Override
+            public int compare(Process o1, Process o2) {
+                // if priority is equal , the process with the smallest arrivaltime
+                // should be positioned befor the other
+                if(o1.priorityNumber == o2.priorityNumber){
+                    return o1.arrivalTime - o2.arrivalTime;
+                }
+                // If the priority numbers are different
+                // processes with higher priority numbers will be positioned after
+                // processes with lower priority numbers.
+                return o1.priorityNumber - o2.priorityNumber;
+            }
+        });
+    }
+    void execute()
+    {
+        sortProcesses();
+        System.out.println("----------Processes execution order----------");
+        for(int i = 0; i < processes.size(); i++){
+            System.out.print(processes.get(i).name+" ");
+        }
+        System.out.println();
+
+        int totalturnaroundtime=0;
+        int averageturnaroundtime =0;
+        int totalwatingtime=0;
+        int averagewaitingtime=0;
+        processes.get(0).currenttime = processes.get(0).burstTime;
+        //current[i]=burst[i]+current[i-1]
+        for(int i = 1; i < processes.size(); i++){
+            processes.get(i).currenttime = processes.get(i).burstTime + processes.get(i - 1).currenttime;
+        }
+        //turnaround=current-arrival
+        System.out.println();
+        System.out.println("----------Turnaround time for each process----------");
+        for (int i = 0; i < processes.size(); i++) {
+            System.out.println( processes.get(i).currenttime - processes.get(i).arrivalTime);
+            processes.get(i).turnaroundtime = processes.get(i).currenttime - processes.get(i).arrivalTime;
+            totalturnaroundtime += processes.get(i).turnaroundtime;
+
+        }
+        averageturnaroundtime = totalturnaroundtime / processes.size();
+        //waiting=turnaround-burst
+        System.out.println();
+        System.out.println("----------Waiting time for each process----------");
+
+        for (int i = 0; i < processes.size(); i++) {
+            System.out.println(processes.get(i).turnaroundtime - processes.get(i).burstTime);
+            processes.get(i).waitingtime = processes.get(i).turnaroundtime - processes.get(i).burstTime;
+            totalwatingtime += processes.get(i).waitingtime;
+        }
+        averagewaitingtime = totalwatingtime  / processes.size();
+
+        //print the average waiting time
+        System.out.println();
+
+        System.out.println("Average waiting time: "+(averagewaitingtime));
+        //print the average turnaround time
+        System.out.println();
+        System.out.println("Average turnaround time: "+(averageturnaroundtime));
+
+    }
+    // solving of starvation problem using aging
+        
+    void Aging(ArrayList<Process> processes) {
+        int aginglimit = 0;
+        int sumofpriority =0;
+        for (int i=0;i<processes.size();i++)
+        {
+
+                sumofpriority+=processes.get(i).priorityNumber;
+        }
+        aginglimit=sumofpriority % processes.size();
+        for (Process process : processes) {
+            // if the process exceeded againglimit
+            if (process.waitingtime > aginglimit) {
+                // Increase the priority (lower the priority value)
+                process.priorityNumber--;
+                System.out.println("Aging: Increased priority for process " + process.name);
+            }
+        }
+    }
+
+}
+
+public class SchedulersSimulator {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of processes: ");
+        int numProcesses = scanner.nextInt();
+        System.out.print("Enter the Round Robin Time Quantum: ");
+        int timeQuantum = scanner.nextInt();
+        System.out.print("Enter context switching time: ");
+        int contextSwitching = scanner.nextInt();
+        ArrayList<Process> processes = new ArrayList<>();
+        for (int i = 0; i < numProcesses; i++) {
+            Process process = new Process("", "", 0, 0, 0);
+            System.out.println("----------Process "+(i+1)+"----------");
+            process.getProcessInfo();
+            processes.add(process);
+        }
+        System.out.println("--------------------------SJF--------------------------");
+        SJF sjf = new SJF(processes, contextSwitching);
+        sjf.execute();
+        System.out.println("-------------------------------------------------------");
+        System.out.println("--------------------------priority scheduler--------------------------");
+        PriorityScheduling priority = new PriorityScheduling(processes);
+        priority.execute();
+        priority.Aging(processes);
+        System.out.println("-------------------------------------------------------");
+
+    }
+
+}
