@@ -225,7 +225,7 @@ class AGSchedule {
                     // if the process execute for first time    ??
                     // need to execute it with half of quantum time not one second     ??
                     currentProcess.quantumTime += (currentProcess.quantumTime - lastExecuteTime);
-                    queueProcess.add(currentProcess);
+//                    queueProcess.add(currentProcess);
                     currentProcess.status = true;
                     currentProcess = minProcess;
                     fTimeForCurrentProcess = true;
@@ -233,23 +233,22 @@ class AGSchedule {
                 }
                 else { // currentProcess will continue executing, in preemptive
 
-                    // currentProcess will execute for one second
-                    System.out.println(curTime);
-                    System.out.println(currentProcess.name);
-                    curTime++;
-                    currentProcess.burstTime -= 1;
-                    lastExecuteTime += 1;
-                    System.out.println(curTime);
-
-
-
                     if (currentProcess.burstTime == 0){ // currentProcess is done
                         // currentProcess will be removed from curProcess
                         // add to diedList .. continue algorithm
+                        currentProcess.quantumTime = 0;
                         diedList.add(currentProcess);
+//                        Process finalCurrentProcess = currentProcess;
+//                        curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name) );
                         curProcess.remove(currentProcess);
                         currentProcess = queueProcess.remove();
+                        for (int i=0;i<queueProcess.size();i++){
+                            if(currentProcess.burstTime == 0){
+                                currentProcess = queueProcess.remove();
+                            }
+                        }
                         fTimeForCurrentProcess = true;
+                        continue;
 
                     }
                     else if (lastExecuteTime == currentProcess.quantumTime) {
@@ -266,10 +265,35 @@ class AGSchedule {
 
                         queueProcess.add(currentProcess);
                         currentProcess.status = true;
+//                        if(queueProcess.peek().burstTime == 0){
+//                            queueProcess.remove();
+//                        }
+
                         currentProcess = queueProcess.remove();
+//
+                        for (int i=0;i<queueProcess.size();i++){
+                            if(currentProcess.burstTime == 0){
+                                currentProcess = queueProcess.remove();
+                            }
+                        }
 
                         fTimeForCurrentProcess = true;
+
+                        continue;
                     }
+
+
+                    // currentProcess will execute for one second
+                    System.out.println(curTime);
+                    System.out.println(currentProcess.name);
+                    curTime++;
+                    currentProcess.burstTime -= 1;
+                    lastExecuteTime += 1;
+                    System.out.println(curTime);
+
+
+
+
                 }
             }
         }
