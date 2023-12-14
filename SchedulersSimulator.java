@@ -167,7 +167,6 @@ class AGSchedule {
     void execute() {
         int lastProcessIdx = 0;
         int curTime = 0;
-        int mean = 0;
         int lastExecuteTime = 0;
         boolean fTimeForCurrentProcess = false;
         Process currentProcess = null;
@@ -200,12 +199,7 @@ class AGSchedule {
                     minProcess = value;
                 }
             }
-            for (Process process : curProcess) {
-                if (!Objects.equals(process.name, minProcess.name) && !process.status) {
-                    queueProcess.add(process);
-                    process.status = true;
-                }
-            }
+
 
             if (currentProcess == null || fTimeForCurrentProcess){ // No process is executing, or new process is starting
                 if (currentProcess == null)
@@ -222,11 +216,24 @@ class AGSchedule {
             } else { // There is a process executing in preemptive
 
                 if (currentProcess.AGFactor > minProcess.AGFactor) {
+
                     // if the process execute for first time    ??
                     // need to execute it with half of quantum time not one second     ??
                     currentProcess.quantumTime += (currentProcess.quantumTime - lastExecuteTime);
+
+                    Process finalCurrentProcess = currentProcess;
+                    curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name));
+
+                    curProcess.add(currentProcess);
+
+                    for (Process process : curProcess) {
+                        if (!Objects.equals(process.name, minProcess.name) && !process.status) {
+                            queueProcess.add(process);
+                            process.status = true;
+                        }
+                    }
+
 //                    queueProcess.add(currentProcess);
-                    currentProcess.status = true;
                     currentProcess = minProcess;
                     fTimeForCurrentProcess = true;
                     System.out.println(currentProcess.name);
@@ -241,11 +248,12 @@ class AGSchedule {
 //                        Process finalCurrentProcess = currentProcess;
 //                        curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name) );
                         curProcess.remove(currentProcess);
-                        currentProcess = queueProcess.remove();
+                        currentProcess = queueProcess.poll();
                         for (int i=0;i<queueProcess.size();i++){
                             if(currentProcess.burstTime == 0){
-                                currentProcess = queueProcess.remove();
+                                currentProcess = queueProcess.poll();
                             }
+                            
                         }
                         fTimeForCurrentProcess = true;
                         continue;
@@ -263,20 +271,21 @@ class AGSchedule {
                         avg = (avg/curProcess.size());
                         currentProcess.quantumTime += (int) Math.ceil(avg * 0.1);
 
+                        Process finalCurrentProcess = currentProcess;
+                        curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name));
+
+                        curProcess.add(currentProcess);
+
                         queueProcess.add(currentProcess);
                         currentProcess.status = true;
-//                        if(queueProcess.peek().burstTime == 0){
-//                            queueProcess.remove();
-//                        }
 
-                        currentProcess = queueProcess.remove();
-//
+                        currentProcess = queueProcess.poll();
+
                         for (int i=0;i<queueProcess.size();i++){
                             if(currentProcess.burstTime == 0){
-                                currentProcess = queueProcess.remove();
+                                currentProcess = queueProcess.poll();
                             }
                         }
-
                         fTimeForCurrentProcess = true;
 
                         continue;
