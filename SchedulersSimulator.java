@@ -5,6 +5,7 @@ class Process {
     String color;
     int arrivalTime;
     int burstTime;
+    int remainingBurstTime;
     int priorityNumber;
     int quantumTime;
 
@@ -34,6 +35,7 @@ class Process {
         this.priorityNumber = priorityNumber;
         this.rundom = run;
         this.quantumTime = qn;
+        this.remainingBurstTime = burstTime;
     }
 
     void getProcessInfo() {
@@ -217,8 +219,8 @@ class AGSchedule {
                 if (currentProcess == null)
                     currentProcess = curProcess.get(0);
                 int halfTime = (int)Math.ceil(currentProcess.quantumTime * 0.5);
-                int rlExecuteTime = Math.min(halfTime, currentProcess.burstTime);
-                currentProcess.burstTime -= rlExecuteTime;
+                int rlExecuteTime = Math.min(halfTime, currentProcess.remainingBurstTime);
+                currentProcess.remainingBurstTime -= rlExecuteTime;
                 lastExecuteTime = rlExecuteTime;
 //                System.out.println(curTime);
                 curTime += rlExecuteTime;
@@ -252,15 +254,15 @@ class AGSchedule {
                 }
                 else { // currentProcess will continue executing, in preemptive
 
-                    if (currentProcess.burstTime == 0){ // currentProcess is done
+                    if (currentProcess.remainingBurstTime == 0){ // currentProcess is done
                         // currentProcess will be removed from curProcess
                         // add to diedList .. continue algorithm
                         currentProcess.quantumTime = 0;
                         if(!diedList.contains(currentProcess)){
                             diedList.add(currentProcess);
                             int t = (curTime-currentProcess.arrivalTime);
-                            System.out.println(currentProcess.name + "Turn around time: " + (t));
-                            System.out.println(currentProcess.name + "Waiting time: "+(t - currentProcess.burstTime) );
+                            System.out.println(currentProcess.name + " Turn around time: " + (t));
+                            System.out.println(currentProcess.name +  " Waiting time: "+(t - currentProcess.burstTime) );
 
                             turnAroundTime.add(t);
                             waitingTime.add(t - currentProcess.burstTime);
@@ -271,7 +273,7 @@ class AGSchedule {
                         currentProcess = queueProcess.poll();
                         if(currentProcess!=null) {
                             for (int i = 0; i < queueProcess.size(); i++) {
-                                if (currentProcess.burstTime == 0) {
+                                if (currentProcess.remainingBurstTime == 0) {
                                     currentProcess = queueProcess.poll();
                                 }
                             }
@@ -308,7 +310,7 @@ class AGSchedule {
 
                         if(currentProcess!=null) {
                             for (int i = 0; i < queueProcess.size(); i++) {
-                                if (currentProcess.burstTime == 0) {
+                                if (currentProcess.remainingBurstTime == 0) {
                                     currentProcess = queueProcess.poll();
                                 }
                             }
@@ -327,7 +329,7 @@ class AGSchedule {
 //                    System.out.println(curTime);
 //                    System.out.println(currentProcess.name);
                     curTime++;
-                    currentProcess.burstTime -= 1;
+                    currentProcess.remainingBurstTime -= 1;
                     lastExecuteTime += 1;
 //                    System.out.println(curTime);
 
@@ -353,7 +355,7 @@ class AGSchedule {
 
         System.out.println("Execution order: ");
         for (Process process : diedList) {
-            System.out.println(process);
+            System.out.print(process.name + " ");
         }
 //        print(turnAroundTime);
     }
