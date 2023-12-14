@@ -112,16 +112,20 @@ class AGSchedule {
     }
 
     int minimumAGFactor() {
-        int i = -1, min = arrived.get(0).AGFactor;
+        if (arrived.size() == 0) return -1;
+
+        int i , min = arrived.get(0).AGFactor;
         for (i = 1; i < arrived.size(); i++) {
             if (arrived.get(i).AGFactor < min) {
                 min = arrived.get(i).AGFactor;
             }
         }
+
         return i;
     }
 
     void execute() {
+        boolean flag = true;
         while (true) {
             for (int i = 0; i < processes.size(); i++) {
                 if (time >= processes.get(i).arrivalTime) {
@@ -131,49 +135,67 @@ class AGSchedule {
                 }
             }
 
-            if (processInCPU == null) {
-                processInCPU = arrived.remove(minimumAGFactor());
-                currTimeQuantum = processInCPU.quantumTime / 2;
+            if (flag && processInCPU == null) {
+                if(readyQueue.size()>0){
+                    processInCPU = readyQueue.remove();
+
+                } else if (arrived.size()>0) {
+                    processInCPU = arrived.remove(minimumAGFactor());
+                } else {
+                    break;
+                }
+
+                if(processInCPU.burstTime < (processInCPU.quantumTime/2)) currTimeQuantum = processInCPU.burstTime;
+                else currTimeQuantum = processInCPU.quantumTime / 2;
+                processInCPU.burstTime -= currTimeQuantum;
                 time += currTimeQuantum;
+                flag=false;
                 continue;
             }
 
-            if (minimumAGFactor() != -1 && arrived.get(minimumAGFactor()).AGFactor < processInCPU.AGFactor) {
-                if (currTimeQuantum != 0) {
-                    processInCPU.burstTime -= currTimeQuantum;
+            if ( minimumAGFactor() != -1 && arrived.get(minimumAGFactor()).AGFactor < processInCPU.AGFactor) {
+                if (currTimeQuantum != 0 || processInCPU.burstTime != 0 ) {
+//                    processInCPU.burstTime -= currTimeQuantum;
                     processInCPU.quantumTime += currTimeQuantum;
                     readyQueue.add(processInCPU);
+                    arrived.add(processInCPU);
+//                    Process temp=processInCPU;
                     processInCPU = arrived.remove(minimumAGFactor());
-                    currTimeQuantum = processInCPU.quantumTime / 2;
-                    for (int i = 0; i < arrived.size(); i++) {
-                        readyQueue.add(arrived.remove(i));
-                        i--;
-                    }
+//                    arrived.add(temp);
+                    if(processInCPU.burstTime < (processInCPU.quantumTime/2)) currTimeQuantum = processInCPU.burstTime;
+                    else currTimeQuantum = processInCPU.quantumTime / 2;
+                    processInCPU.burstTime -= currTimeQuantum;
                     time += currTimeQuantum;
                     continue;
                 }
             } else {
                 for (int i = 0; i < arrived.size(); i++) {
-                    readyQueue.add(arrived.remove(i));
-                    i--;
+                    readyQueue.add(arrived.get(i));
+//
                 }
             }
 
-        if (processInCPU.quantumTime == 0) {
+        if (currTimeQuantum == 0) {
             try {
-                Process temp = processInCPU;
-                processInCPU = readyQueue.remove();
-                processInCPU.quantumTime += (int) Math.ceil(mean()*0.1);
-                readyQueue.add(temp);
+//                Process temp = processInCPU;
+//                processInCPU = readyQueue.remove();
+                processInCPU.quantumTime += (int) Math.ceil(mean() * 0.1);
+                readyQueue.add(processInCPU);
+                processInCPU = null;
+                flag=true;
             } catch (NoSuchElementException e){}
 
-        } else if (processInCPU.burstTime == 0 ) {
+        } else if (processInCPU.burstTime <= 0 ) {
             processInCPU.quantumTime = 0;
+            arrived.removeIf(p -> p.name.equals(processInCPU.name));
+            readyQueue.removeIf(p -> p.name.equals(processInCPU.name));
+
             if (readyQueue.size() > 0) {
                   processInCPU = readyQueue.remove();
             }
         } else {
             currTimeQuantum -= 1;
+            processInCPU.burstTime -= 1;
             time += 1;
         }
 
