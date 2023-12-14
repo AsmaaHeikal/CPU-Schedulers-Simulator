@@ -186,11 +186,11 @@ class AGSchedule {
 
             // 1. get min AGFactor process
             // 2. check if this is a new appearing process
-                // 2.1 if yes, compare it with currentProcess
-                    // 2.1.1 if it has smaller AGFactor, then it's the new currentProcess
-                    // 2.1.2 else it should be added to queueProcess
-                    // 2.2 else, it's not a new appearing process, so it should be compared with currentProcess
-                    // 2.2.1 if it has smaller AGFactor, then it's the new currentProcess
+            // 2.1 if yes, compare it with currentProcess
+            // 2.1.1 if it has smaller AGFactor, then it's the new currentProcess
+            // 2.1.2 else it should be added to queueProcess
+            // 2.2 else, it's not a new appearing process, so it should be compared with currentProcess
+            // 2.2.1 if it has smaller AGFactor, then it's the new currentProcess
             // 3. All other appearing processes should be added to queueProcess
 
             Process minProcess = curProcess.get(0);
@@ -244,17 +244,23 @@ class AGSchedule {
                         // currentProcess will be removed from curProcess
                         // add to diedList .. continue algorithm
                         currentProcess.quantumTime = 0;
-                        diedList.add(currentProcess);
-//                        Process finalCurrentProcess = currentProcess;
-//                        curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name) );
+                        if(!diedList.contains(currentProcess)){
+                            diedList.add(currentProcess);
+                        }
+
                         curProcess.remove(currentProcess);
                         currentProcess = queueProcess.poll();
-                        for (int i=0;i<queueProcess.size();i++){
-                            if(currentProcess.burstTime == 0){
-                                currentProcess = queueProcess.poll();
+                        if(currentProcess!=null) {
+                            for (int i = 0; i < queueProcess.size(); i++) {
+                                if (currentProcess.burstTime == 0) {
+                                    currentProcess = queueProcess.poll();
+                                }
                             }
-                            
+                            if(currentProcess!=null) {
+                                currentProcess.status = false;
+                            }
                         }
+
                         fTimeForCurrentProcess = true;
                         continue;
 
@@ -281,11 +287,17 @@ class AGSchedule {
 
                         currentProcess = queueProcess.poll();
 
-                        for (int i=0;i<queueProcess.size();i++){
-                            if(currentProcess.burstTime == 0){
-                                currentProcess = queueProcess.poll();
+                        if(currentProcess!=null) {
+                            for (int i = 0; i < queueProcess.size(); i++) {
+                                if (currentProcess.burstTime == 0) {
+                                    currentProcess = queueProcess.poll();
+                                }
+                            }
+                            if(currentProcess!=null) {
+                                currentProcess.status = false;
                             }
                         }
+
                         fTimeForCurrentProcess = true;
 
                         continue;
