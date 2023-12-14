@@ -12,7 +12,7 @@ class Process {
     int AGFactor = 0;
 
     boolean status = false;
-    int rundom;
+
 
 //    void setQuantumTime(int q) {
 //        this.quantumTime = q;
@@ -22,18 +22,17 @@ class Process {
 //        return quantumTime;
 //    }
 
-    void setRundom(int x){
-        this.rundom = x;
-    }
+//    void setRundom(int x){
+//        this.rundom = x;
+//    }
 
 
-    public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber, int run, int qn) {
+    public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber,  int qn) {
         this.name = name;
         this.color = color;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.priorityNumber = priorityNumber;
-        this.rundom = run;
         this.quantumTime = qn;
         this.remainingBurstTime = burstTime;
     }
@@ -50,8 +49,9 @@ class Process {
         burstTime = scanner.nextInt();
         System.out.print("Enter the process priority number: ");
         priorityNumber = scanner.nextInt();
-        System.out.print("Enter the rundom time: ");
-        rundom = scanner.nextInt();
+
+        this.remainingBurstTime = burstTime;
+
     }
 }
 
@@ -150,13 +150,13 @@ class AGSchedule {
     }
 
     int AGFactor(Process process) {
-//        int rund = random();
-        if (process.rundom == 10) {
+        int rund = random();
+        if (rund == 10) {
             int x = process.priorityNumber + process.arrivalTime + process.burstTime;
             process.AGFactor = x;
             return x;
-        } else if (process.rundom < 10) {
-            int x = process.rundom + process.arrivalTime + process.burstTime;
+        } else if (rund < 10) {
+            int x = rund + process.arrivalTime + process.burstTime;
             process.AGFactor = x;
             return x;
         } else {
@@ -235,10 +235,16 @@ class AGSchedule {
                     // need to execute it with half of quantum time not one second     ??
                     currentProcess.quantumTime += (currentProcess.quantumTime - lastExecuteTime);
 
+
                     Process finalCurrentProcess = currentProcess;
                     curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name));
 
                     curProcess.add(currentProcess);
+                    System.out.print("(");
+                    for (int i=0;i<processes.size();i++){
+                        System.out.print(processes.get(i).name+ ":" +processes.get(i).quantumTime + ", ");
+                    }
+                    System.out.println(")");
 
                     for (Process process : curProcess) {
                         if (!Objects.equals(process.name, minProcess.name) && !process.status) {
@@ -258,6 +264,7 @@ class AGSchedule {
                         // currentProcess will be removed from curProcess
                         // add to diedList .. continue algorithm
                         currentProcess.quantumTime = 0;
+
                         if(!diedList.contains(currentProcess)){
                             diedList.add(currentProcess);
                             int t = (curTime-currentProcess.arrivalTime);
@@ -268,6 +275,16 @@ class AGSchedule {
                             waitingTime.add(t - currentProcess.burstTime);
 
                         }
+                        System.out.print("(");
+                        for (int i=0;i<processes.size();i++){
+                            if(!currentProcess.name.equals(processes.get(i).name)) {
+                                System.out.print(processes.get(i).name+ ":" +processes.get(i).quantumTime + ", ");
+                            }
+                            else{
+                                System.out.print(currentProcess.quantumTime +", ");
+                            }
+                        }
+                        System.out.println(")");
 
                         curProcess.remove(currentProcess);
                         currentProcess = queueProcess.poll();
@@ -302,6 +319,11 @@ class AGSchedule {
                         curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name));
 
                         curProcess.add(currentProcess);
+                        System.out.print("(");
+                        for (int i=0;i<processes.size();i++){
+                            System.out.print(processes.get(i).name+ ":" +processes.get(i).quantumTime + ", ");
+                        }
+                        System.out.println(")");
 
                         queueProcess.add(currentProcess);
                         currentProcess.status = true;
@@ -363,37 +385,25 @@ class AGSchedule {
 
 public class SchedulersSimulator {
     public static void main(String[] args) {
-//        Scanner scanner = new Scanner(System.in);
-//        System.out.print("Enter the number of processes: ");
-//        int numProcesses = scanner.nextInt();
-//        System.out.print("Enter the Round Robin Time Quantum: ");
-//        int timeQuantum = scanner.nextInt();
-//        System.out.print("Enter context switching time: ");
-//        int contextSwitching = scanner.nextInt();
-
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of processes: ");
+        int numProcesses = scanner.nextInt();
+        System.out.print("Enter the Round Robin Time Quantum: ");
+        int timeQuantum = scanner.nextInt();
+        System.out.print("Enter context switching time: ");
+        int contextSwitching = scanner.nextInt();
 
         ArrayList<Process> processes = new ArrayList<>();
-//        for (int i = 0; i < numProcesses; i++) {
-//            Process process = new Process("", "", 0, 0, 0, 0, 0);
-////            System.out.println("----------Process " + (i + 1) + "----------");
-////            process.getProcessInfo();
-////
-////            processes.add(process);
-////            process.setQuantumTime(timeQuantum);
-//        }
-        Process process1 = new Process("p1", "e", 0, 17, 4, 3, 4);
-        Process process2 = new Process("p2", "e", 3, 6, 9, 8, 4);
-        Process process3 = new Process("p3", "e", 4, 10, 2, 10, 4);
-        Process process4 = new Process("p4", "e", 29, 4, 8, 12, 4);
+        for (int i = 0; i < numProcesses; i++) {
+            Process process = new Process("", "", 0, 0, 0, timeQuantum);
+            System.out.println("----------Process " + (i + 1) + "----------");
+            process.getProcessInfo();
 
-        processes.add(process1);
-        processes.add(process2);
-        processes.add(process3);
-        processes.add(process4);
-
-
+            processes.add(process);
+        }
         AGSchedule ag = new AGSchedule(processes);
         ag.execute();
+
 //        System.out.println("--------------------------SJF--------------------------");
 //        SJF sjf = new SJF(processes, contextSwitching);
 //        sjf.execute();
