@@ -2,7 +2,6 @@ import java.util.*;
 
 class Process {
     String name;
-    String color;
     int arrivalTime;
     int burstTime;
     int remainingBurstTime;
@@ -18,9 +17,8 @@ class Process {
     boolean status = false;
 
     int currenttime ;
-    public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber,   int qn) {
+    public Process(String name, int arrivalTime, int burstTime, int priorityNumber,   int qn) {
         this.name = name;
-        this.color = color;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.priorityNumber = priorityNumber;
@@ -34,8 +32,6 @@ class Process {
        System.out.print("Enter the process name: ");
         Scanner scanner = new Scanner(System.in);
         name = scanner.nextLine();
-        System.out.print("Enter the process color: ");
-        color = scanner.nextLine();
         System.out.print("Enter the process arrival time: ");
         arrivalTime = scanner.nextInt();
         System.out.print("Enter the process burst time: ");
@@ -495,26 +491,35 @@ public class SchedulersSimulator {
         int contextSwitching = scanner.nextInt();
         ArrayList<Process> processes = new ArrayList<>();
         for (int i = 0; i < numProcesses; i++) {
-            Process process = new Process("", "", 0, 0, 0, timeQuantum);
+            Process process = new Process("",  0, 0, 0, timeQuantum);
             System.out.println("----------Process "+(i+1)+"----------");
             process.getProcessInfo();
             processes.add(process);
         }
         System.out.println("--------------------------SJF--------------------------");
-        SJF sjf = new SJF(processes, contextSwitching);
+        //copy the processes to another array list to use it in the SJF class
+        ArrayList<Process> processes2 = new ArrayList<>(processes);
+        SJF sjf = new SJF(processes2, contextSwitching);
         sjf.execute();
         System.out.println("-------------------------------------------------------");
+        System.out.println();
+        System.out.println();
 
         System.out.println("--------------------------priority scheduler--------------------------");
-        PriorityScheduling priority = new PriorityScheduling(processes);
+        ArrayList<Process> processes3 = new ArrayList<>(processes);
+        PriorityScheduling priority = new PriorityScheduling(processes3);
         priority.execute();
-        priority.Aging(processes);
+        priority.Aging(processes3);
         System.out.println("-------------------------------------------------------");
+        System.out.println();
+        System.out.println();
 
         System.out.println("--------------------------AG scheduler--------------------------");
-        AGSchedule ag = new AGSchedule(processes);
+        ArrayList<Process> processes4 = new ArrayList<>(processes);
+        AGSchedule ag = new AGSchedule(processes4);
         ag.execute();
         System.out.println("-------------------------------------------------------");
-
+        System.out.println();
+        System.out.println();
     }
 }
