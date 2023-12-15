@@ -466,7 +466,13 @@ class AGSchedule {
             //  else it should be added to queueProcess [each curProcess.get(0) will be replaced with minProcess]
 
 
-            Process minProcess = curProcess.get(0);
+            Process minProcess;
+            try {
+                  minProcess = curProcess.get(0);
+            } catch (IndexOutOfBoundsException e){
+                curTime++;
+                continue;
+            }
             for (Process value : curProcess) {
                 if (minProcess.AGFactor > value.AGFactor) {
                     minProcess = value;
