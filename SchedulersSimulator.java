@@ -230,7 +230,7 @@ class PriorityScheduling
 
             sumofpriority+=processes.get(i).priorityNumber;
         }
-        aginglimit=sumofpriority % processes.size();
+        aginglimit=sumofpriority / processes.size();
         for (Process process : processes) {
             // if the process has been waiting for a long time
             if (process.waitingTime > aginglimit) {
