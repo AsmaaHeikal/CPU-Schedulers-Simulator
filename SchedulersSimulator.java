@@ -31,13 +31,18 @@ class Process {
         this.quantumTime = qn;
     }
     void getProcessInfo(){
-        System.out.print("process name, color, arrival time, burst time, priority number: ");
+       System.out.print("Enter the process name: ");
         Scanner scanner = new Scanner(System.in);
-        name = scanner.next();
-        color = scanner.next();
+        name = scanner.nextLine();
+        System.out.print("Enter the process color: ");
+        color = scanner.nextLine();
+        System.out.print("Enter the process arrival time: ");
         arrivalTime = scanner.nextInt();
+        System.out.print("Enter the process burst time: ");
         burstTime = scanner.nextInt();
+        System.out.print("Enter the process priority number: ");
         priorityNumber = scanner.nextInt();
+        
         this.remainingBurstTime = burstTime;
     }
     void setFinishTime(int finishTime){
