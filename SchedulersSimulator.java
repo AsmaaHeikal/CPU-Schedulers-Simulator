@@ -29,7 +29,6 @@ class Process {
         turnAroundTime = 0;
         waitingTime = 0;
         this.quantumTime = qn;
-        this.remainingBurstTime = burstTime;
     }
     void getProcessInfo(){
         System.out.print("process name, color, arrival time, burst time, priority number: ");
@@ -39,6 +38,7 @@ class Process {
         arrivalTime = scanner.nextInt();
         burstTime = scanner.nextInt();
         priorityNumber = scanner.nextInt();
+        this.remainingBurstTime = burstTime;
     }
     void setFinishTime(int finishTime){
         this.finishTime = finishTime;
