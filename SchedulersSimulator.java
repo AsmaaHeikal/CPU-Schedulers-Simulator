@@ -1,5 +1,7 @@
 import java.util.*;
 
+import static java.lang.Math.abs;
+
 class Process {
     String name;
     int arrivalTime;
@@ -29,7 +31,7 @@ class Process {
         this.quantumTime = qn;
     }
     void getProcessInfo(){
-       System.out.print("Enter the process name: ");
+        System.out.print("Enter the process name: ");
         Scanner scanner = new Scanner(System.in);
         name = scanner.nextLine();
         System.out.print("Enter the process arrival time: ");
@@ -38,7 +40,7 @@ class Process {
         burstTime = scanner.nextInt();
         System.out.print("Enter the process priority number: ");
         priorityNumber = scanner.nextInt();
-        
+
         this.remainingBurstTime = burstTime;
     }
     void setFinishTime(int finishTime){
@@ -152,8 +154,16 @@ class SJF{
         System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/(double)processes.size()));
     }
 }
+class PriorityScheduling
+{
+    ArrayList<Process> processes;
 
-   void sortProcesses()
+    public PriorityScheduling(ArrayList<Process> processes3)
+    {
+        this.processes=processes3;
+    }
+
+    void sortProcesses()
     {
         Collections.sort(processes, new Comparator<Process>() {
             @Override
@@ -161,13 +171,13 @@ class SJF{
                 if (o1.arrivalTime==o2.arrivalTime)
                 {
 
-                        return o1.priorityNumber-o2.priorityNumber;
+                    return o1.priorityNumber-o2.priorityNumber;
 
                 }
                 else if ((o1.arrivalTime==o2.arrivalTime)&&(o1.priorityNumber==o2.priorityNumber))
                 {
                     return o1.burstTime-o2.burstTime;
-                    
+
                 }
                 else
                 {
@@ -244,8 +254,8 @@ class SJF{
         }
     }
 
-}   
-      
+}
+
 
 
 class SRTF{
