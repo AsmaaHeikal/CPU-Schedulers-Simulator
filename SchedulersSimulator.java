@@ -10,6 +10,8 @@ class Process {
     boolean isFinished;
     int turnAroundTime;
     int waitingTime;
+
+    int currenttime ;
     public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber) {
         this.name = name;
         this.color = color;
@@ -136,6 +138,103 @@ class SJF{
         System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/processes.size()));
     }
 }
+class PriorityScheduling
+{
+    ArrayList<Process> processes;
+    public PriorityScheduling(ArrayList<Process> processes)
+    {
+        this.processes = processes;
+    }
+    // Sort according  priority time
+    // if equal according to  arrival time
+
+    void sortProcesses()
+    {
+        Collections.sort(processes, new Comparator<Process>() {
+            @Override
+            public int compare(Process o1, Process o2) {
+                // if priority is equal , the process with the smallest arrivaltime
+                // should be positioned before the other
+                if(o1.priorityNumber == o2.priorityNumber){
+                    return o1.arrivalTime - o2.arrivalTime;
+                }
+                // If the priority numbers are different, compare the priority numbers.
+                // processes with higher priority numbers will be positioned after
+                // processes with lower priority numbers.
+                return o1.priorityNumber - o2.priorityNumber;
+            }
+        });
+    }
+    void execute()
+    {
+        sortProcesses();
+        System.out.println("----------Processes execution order----------");
+        for(int i = 0; i < processes.size(); i++){
+            System.out.print(processes.get(i).name+" ");
+        }
+        System.out.println();
+
+        int totalturnaroundtime=0;
+        int averageturnaroundtime =0;
+        int totalwatingtime=0;
+        int averagewaitingtime=0;
+        processes.get(0).currenttime = processes.get(0).burstTime;
+        //current[i]=burst[i]+current[i-1]
+        for(int i = 1; i < processes.size(); i++){
+            processes.get(i).currenttime = processes.get(i).burstTime + processes.get(i - 1).currenttime;
+        }
+        //turnaround=current-arrival
+        System.out.println();
+        System.out.println("----------Turnaround time for each process----------");
+        for (int i = 0; i < processes.size(); i++) {
+            System.out.println( processes.get(i).currenttime - processes.get(i).arrivalTime);
+            processes.get(i).turnAroundTime = processes.get(i).currenttime - processes.get(i).arrivalTime;
+            totalturnaroundtime += processes.get(i).turnAroundTime;
+
+        }
+        averageturnaroundtime = totalturnaroundtime / processes.size();
+        //waiting=turnaround-burst
+        System.out.println();
+        System.out.println("----------Waiting time for each process----------");
+
+        for (int i = 0; i < processes.size(); i++) {
+            System.out.println(processes.get(i).turnAroundTime - processes.get(i).burstTime);
+            processes.get(i).waitingTime = processes.get(i).turnAroundTime - processes.get(i).burstTime;
+            totalwatingtime += processes.get(i).waitingTime;
+        }
+        averagewaitingtime = totalwatingtime  / processes.size();
+
+        //print the average waiting time
+        System.out.println();
+
+        System.out.println("Average waiting time: "+(averagewaitingtime));
+        //print the average turnaround time
+        System.out.println();
+        System.out.println("Average turnaround time: "+(averageturnaroundtime));
+
+    }
+    // Example: Apply aging to increase the priority of a process over time
+    void Aging(ArrayList<Process> processes) {
+        int aginglimit = 0;
+        int sumofpriority =0;
+        for (int i=0;i<processes.size();i++)
+        {
+
+            sumofpriority+=processes.get(i).priorityNumber;
+        }
+        aginglimit=sumofpriority % processes.size();
+        for (Process process : processes) {
+            // if the process has been waiting for a long time
+            if (process.waitingTime > aginglimit) {
+                // Increase the priority (lower the priority value)
+                process.priorityNumber--;
+                System.out.println("Aging: Increased priority for process " + process.name);
+            }
+        }
+    }
+
+}
+
 
 public class SchedulersSimulator {
     public static void main(String[] args) {
@@ -156,6 +255,12 @@ public class SchedulersSimulator {
         System.out.println("--------------------------SJF--------------------------");
         SJF sjf = new SJF(processes, contextSwitching);
         sjf.execute();
+        System.out.println("-------------------------------------------------------");
+
+        System.out.println("--------------------------priority scheduler--------------------------");
+        PriorityScheduling priority = new PriorityScheduling(processes);
+        priority.execute();
+        priority.Aging(processes);
         System.out.println("-------------------------------------------------------");
     }
 }
