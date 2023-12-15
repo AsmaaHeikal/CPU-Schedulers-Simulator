@@ -163,26 +163,21 @@ class PriorityScheduling
         this.processes=processes3;
     }
 
-    void sortProcesses()
+   void sortProcesses()
     {
+
         Collections.sort(processes, new Comparator<Process>() {
             @Override
             public int compare(Process o1, Process o2) {
-                if (o1.arrivalTime==o2.arrivalTime)
-                {
-
-                    return o1.priorityNumber-o2.priorityNumber;
-
+                // if priority is equal , the process with the smallest arrivaltime
+                // should be positioned before the other
+                if(o1.priorityNumber == o2.priorityNumber){
+                    return o1.arrivalTime - o2.arrivalTime;
                 }
-                else if ((o1.arrivalTime==o2.arrivalTime)&&(o1.priorityNumber==o2.priorityNumber))
-                {
-                    return o1.burstTime-o2.burstTime;
-
-                }
-                else
-                {
-                    return o1.arrivalTime-o2.arrivalTime;
-                }
+                // If the priority numbers are different, compare the priority numbers.
+                // processes with higher priority numbers will be positioned after
+                // processes with lower priority numbers.
+                return o1.priorityNumber - o2.priorityNumber;
             }
         });
     }
@@ -209,7 +204,7 @@ class PriorityScheduling
         System.out.println("----------Turnaround time for each process----------");
         for (int i = 0; i < processes.size(); i++) {
             System.out.println( abs(processes.get(i).currenttime - processes.get(i).arrivalTime));
-            processes.get(i).turnAroundTime =abs( processes.get(i).currenttime - processes.get(i).arrivalTime);
+            processes.get(i).turnAroundTime += (processes.get(i).currenttime - processes.get(i).arrivalTime);
             totalturnaroundtime += processes.get(i).turnAroundTime;
 
         }
@@ -220,7 +215,7 @@ class PriorityScheduling
 
         for (int i = 0; i < processes.size(); i++) {
             System.out.println(abs(processes.get(i).turnAroundTime - processes.get(i).burstTime));
-            processes.get(i).waitingTime = abs(processes.get(i).turnAroundTime - processes.get(i).burstTime);
+            processes.get(i).waitingTime = processes.get(i).turnAroundTime - processes.get(i).burstTime;
             totalwatingtime += processes.get(i).waitingTime;
         }
         averagewaitingtime = totalwatingtime  / processes.size();
