@@ -11,7 +11,7 @@ class Process {
     int turnAroundTime;
     int waitingTime;
     int quantumTime;
-
+    int agingTime;
     int AGFactor;
 
     boolean status = false;
@@ -240,6 +240,131 @@ class PriorityScheduling
                 System.out.println("Aging: Increased priority for process " + process.name);
             }
         }
+    }
+
+}
+
+
+class SRTF{
+    ArrayList<Process> processes;
+    ArrayList<Process> readyProcessesQueue;
+    ArrayList<Process> orderedProcesses;
+    int currentTime=0;
+    int agingLimit;
+    //______________________________________________________________________________________________________________________
+    public SRTF (ArrayList<Process> processesList)
+    {
+        this.processes = new ArrayList<>();
+        for (Process process:processesList){
+            Process p = new Process(process.name,process.color,process.arrivalTime,
+                    process.burstTime,process.priorityNumber,process.quantumTime);
+            processes.add(p);
+        }
+        this.readyProcessesQueue=new ArrayList<>();
+        this.orderedProcesses=new ArrayList<>();
+    }
+//______________________________________________________________________________________________________________________
+
+
+    // Helper function to sort the processes based on their arrival time,
+    // if arrival time are equal, then sort based on burst time.
+    void sortProcesses()
+    {
+        processes.sort(new Comparator<Process>() {
+            @Override
+            public int compare(Process o1, Process o2) {
+                if (o1.arrivalTime == o2.arrivalTime) {
+                    return o1.burstTime - o2.burstTime;
+                }
+
+                return o1.arrivalTime - o2.arrivalTime;
+            }
+        });
+    }
+
+//______________________________________________________________________________________________________________________
+
+    void calculateAgingLimit(){
+        int totalBurstTime =0;
+        for (Process process : processes) {
+            totalBurstTime+=process.burstTime;
+        }
+        agingLimit= totalBurstTime/ processes.size();
+    }
+    //______________________________________________________________________________________________________________________
+    Process agedProcess (){
+        for ( Process process : processes){
+            if (process.agingTime>=agingLimit){
+                return process;
+            }
+        }
+        return null;
+    }
+
+
+//______________________________________________________________________________________________________________________
+
+
+    void execute()
+    {
+        ArrayList<Process> ordered=new ArrayList<>();
+        sortProcesses();
+        calculateAgingLimit();
+
+        for ( Process process : processes){
+            process.remainingBurstTime=process.burstTime;
+            process.turnAroundTime= process.burstTime;
+        }
+        while (!processes.isEmpty()) {
+            for ( Process process : processes){
+                if (process.arrivalTime==currentTime ){
+                    readyProcessesQueue.add(process);
+                }
+            }
+            if (!readyProcessesQueue.isEmpty()) {
+                Process currentProcess=agedProcess();
+                if (currentProcess==null){
+                    readyProcessesQueue.sort(Comparator.comparingInt(Process::getBurstTime));
+                    currentProcess=readyProcessesQueue.get(0);
+                }
+                currentProcess.remainingBurstTime--;
+                currentProcess.agingTime=0;
+                if (currentProcess.remainingBurstTime==0){
+                    readyProcessesQueue.remove(currentProcess);
+                    processes.remove(currentProcess);
+                    orderedProcesses.add(currentProcess);
+                }
+                for ( Process process : readyProcessesQueue){
+                    if (process != currentProcess){
+                        process.waitingTime++;
+                        process.turnAroundTime++;
+                        process.agingTime++;
+                    }
+                }
+                ordered.add(currentProcess);
+            }
+
+            currentTime++;
+        }
+        System.out.println("Execution order: ");
+        for ( Process process : ordered){
+            System.out.print(process.name + ' ');
+        }
+        System.out.println();
+        System.out.println( "aging limit= "+ agingLimit );
+        System.out.println("Process\t\tWaiting Time\t\tTurn Around Time");
+        for (Process process : orderedProcesses) {
+            System.out.println(process.name + "\t\t\t\t" + process.waitingTime + "\t\t\t\t\t" + process.turnAroundTime);
+        }
+        //print the average waiting time and average turn around time
+        int totalWaitingTime = 0;
+        int totalTurnAroundTime = 0;
+        for (Process process : orderedProcesses) {
+            totalWaitingTime += process.waitingTime;
+            totalTurnAroundTime += process.turnAroundTime;
+        }
+        System.out.println("Average Waiting Time: "+(totalWaitingTime/orderedProcesses.size()));
+        System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/orderedProcesses.size()));
     }
 
 }
@@ -504,7 +629,12 @@ public class SchedulersSimulator {
         System.out.println("-------------------------------------------------------");
         System.out.println();
         System.out.println();
-
+        System.out.println("--------------------------SRTF--------------------------");
+        SRTF srtf = new SRTF(processes);
+        srtf.execute();
+        System.out.println("-------------------------------------------------------");
+        System.out.println();
+        System.out.println();
         System.out.println("--------------------------priority scheduler--------------------------");
         ArrayList<Process> processes3 = new ArrayList<>(processes);
         PriorityScheduling priority = new PriorityScheduling(processes3);
