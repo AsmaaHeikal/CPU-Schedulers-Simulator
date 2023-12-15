@@ -256,7 +256,7 @@ class SRTF{
     {
         this.processes = new ArrayList<>();
         for (Process process:processesList){
-            Process p = new Process(process.name,process.color,process.arrivalTime,
+            Process p = new Process(process.name,process.arrivalTime,
                     process.burstTime,process.priorityNumber,process.quantumTime);
             processes.add(p);
         }
