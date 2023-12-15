@@ -227,14 +227,13 @@ class PriorityScheduling
 
         //print the average waiting time
         System.out.println();
-
         System.out.println("Average waiting time: "+(averagewaitingtime));
         //print the average turnaround time
         System.out.println();
         System.out.println("Average turnaround time: "+(averageturnaroundtime));
 
     }
-    // Example: Apply aging to increase the priority of a process over time
+    //  increase the priority of a process over time
     void Aging(ArrayList<Process> processes) {
         int aginglimit = 0;
         int sumofpriority =0;
