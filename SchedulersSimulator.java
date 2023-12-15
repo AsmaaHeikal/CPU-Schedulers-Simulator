@@ -146,8 +146,10 @@ class SJF{
             totalWaitingTime += processes.get(i).waitingTime;
             totalTurnAroundTime += processes.get(i).turnAroundTime;
         }
-        System.out.println("Average Waiting Time: "+(totalWaitingTime/processes.size()));
-        System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/processes.size()));
+        //print the average waiting time as double
+        System.out.println("Average Waiting Time: "+(totalWaitingTime/(double)processes.size()));
+        //print the average turn around time as double
+        System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/(double)processes.size()));
     }
 }
 class PriorityScheduling
@@ -366,8 +368,8 @@ class SRTF{
             totalWaitingTime += process.waitingTime;
             totalTurnAroundTime += process.turnAroundTime;
         }
-        System.out.println("Average Waiting Time: "+(totalWaitingTime/orderedProcesses.size()));
-        System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/orderedProcesses.size()));
+        System.out.println("Average Waiting Time: "+(totalWaitingTime/(double)orderedProcesses.size()));
+        System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/(double)orderedProcesses.size()));
     }
 
 }
