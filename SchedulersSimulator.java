@@ -9,22 +9,10 @@ class Process {
     int priorityNumber;
     int quantumTime;
 
-    int AGFactor = 0;
+    int AGFactor;
 
     boolean status = false;
 
-
-//    void setQuantumTime(int q) {
-//        this.quantumTime = q;
-//    }
-//
-//    int getQuantumTime() {
-//        return quantumTime;
-//    }
-
-//    void setRundom(int x){
-//        this.rundom = x;
-//    }
 
 
     public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber,  int qn) {
@@ -135,21 +123,11 @@ class AGSchedule {
         this.queueProcess = new LinkedList<>();
     }
 
-    int minimumNumber() {
-        int min = processes.get(0).arrivalTime;
-        for (int i = 1; i < processes.size(); i++) {
-            if (processes.get(i).arrivalTime < min) {
-                min = processes.get(i).arrivalTime;
-            }
-        }
-        return min;
-    }
-
     int random() {
         return (int) (Math.random() * 20);
     }
 
-    int AGFactor(Process process) {
+    int AGfactor(Process process) {
         int rund = random();
         if (rund == 10) {
             int x = process.priorityNumber + process.arrivalTime + process.burstTime;
@@ -166,19 +144,36 @@ class AGSchedule {
         }
     }
 
-    void print(ArrayList<Integer> arr, ArrayList<Integer> wait){
-        for (int i = 0;i< arr.size();++i){
-            System.out.println();
+    void print(Map<String, Integer> r, Map<String, Integer> w){
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("Waiting time for each process");
+        for (Map.Entry<String, Integer> e : w.entrySet()) {
+            System.out.println(e.getKey() + " Waiting time:  "
+                    + e.getValue());
         }
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("Turn around time time for each process");
+        for (Map.Entry<String, Integer> e : r.entrySet()) {
+            System.out.println(e.getKey() + " Turn around time:  "
+                    + e.getValue());
+        }
+    }
 
-
+    void printHistory(){
+        System.out.print("(");
+        for(int i=0;i<processes.size();i++){
+            System.out.print(processes.get(i).name + ":" + processes.get(i).quantumTime);
+            if( i < processes.size() - 1){
+                System.out.print(", ");
+            }
+        }
+        System.out.println(")");
     }
 
     void execute() {
 
-
-        ArrayList<Integer> turnAroundTime = new ArrayList<>();
-        ArrayList<Integer> waitingTime = new ArrayList<>();
+        Map<String , Integer> turnTime = new HashMap<>();
+        Map<String, Integer> waitTime = new HashMap<>();
 
         int lastProcessIdx = 0;
         int curTime = 0;
@@ -187,25 +182,18 @@ class AGSchedule {
         Process currentProcess = null;
         processes.sort(Comparator.comparingInt(p -> p.arrivalTime));
         while (diedList.size() < processes.size()) {
-            // Start with getting all new processes, correct
+            // Start with getting all new processes
 
             while (lastProcessIdx < processes.size() && processes.get(lastProcessIdx).arrivalTime <= curTime) {
-                processes.get(lastProcessIdx).AGFactor = AGFactor(processes.get(lastProcessIdx));
+
+                processes.get(lastProcessIdx).AGFactor = AGfactor(processes.get(lastProcessIdx));
                 curProcess.add(processes.get(lastProcessIdx));
                 lastProcessIdx++;
             }
-            // todo: all new processes should be added to queueProcess, except the smallest AGFactor one,
+            //  all new processes be added to queueProcess, except the smallest AGFactor one,
             //  which should be compared with currentProcess, if it has smaller AGFactor, then it's the new currentProcess
             //  else it should be added to queueProcess [each curProcess.get(0) will be replaced with minProcess]
-
-            // 1. get min AGFactor process
-            // 2. check if this is a new appearing process
-            // 2.1 if yes, compare it with currentProcess
-            // 2.1.1 if it has smaller AGFactor, then it's the new currentProcess
-            // 2.1.2 else it should be added to queueProcess
-            // 2.2 else, it's not a new appearing process, so it should be compared with currentProcess
-            // 2.2.1 if it has smaller AGFactor, then it's the new currentProcess
-            // 3. All other appearing processes should be added to queueProcess
+            
 
             Process minProcess = curProcess.get(0);
             for (Process value : curProcess) {
@@ -214,7 +202,6 @@ class AGSchedule {
                 }
             }
 
-
             if (currentProcess == null || fTimeForCurrentProcess){ // No process is executing, or new process is starting
                 if (currentProcess == null)
                     currentProcess = curProcess.get(0);
@@ -222,29 +209,21 @@ class AGSchedule {
                 int rlExecuteTime = Math.min(halfTime, currentProcess.remainingBurstTime);
                 currentProcess.remainingBurstTime -= rlExecuteTime;
                 lastExecuteTime = rlExecuteTime;
-//                System.out.println(curTime);
                 curTime += rlExecuteTime;
                 fTimeForCurrentProcess = false;
-//                System.out.println(currentProcess.name);
-//                System.out.println(curTime);
+
             } else { // There is a process executing in preemptive
 
                 if (currentProcess.AGFactor > minProcess.AGFactor) {
 
-                    // if the process execute for first time    ??
-                    // need to execute it with half of quantum time not one second     ??
                     currentProcess.quantumTime += (currentProcess.quantumTime - lastExecuteTime);
-
 
                     Process finalCurrentProcess = currentProcess;
                     curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name));
 
                     curProcess.add(currentProcess);
-                    System.out.print("(");
-                    for (int i=0;i<processes.size();i++){
-                        System.out.print(processes.get(i).name+ ":" +processes.get(i).quantumTime + ", ");
-                    }
-                    System.out.println(")");
+
+                    printHistory();
 
                     for (Process process : curProcess) {
                         if (!Objects.equals(process.name, minProcess.name) && !process.status) {
@@ -252,39 +231,27 @@ class AGSchedule {
                             process.status = true;
                         }
                     }
-
-//                    queueProcess.add(currentProcess);
                     currentProcess = minProcess;
                     fTimeForCurrentProcess = true;
-//                    System.out.println(currentProcess.name);
                 }
                 else { // currentProcess will continue executing, in preemptive
 
                     if (currentProcess.remainingBurstTime == 0){ // currentProcess is done
                         // currentProcess will be removed from curProcess
-                        // add to diedList .. continue algorithm
+                        // add to diedList 
                         currentProcess.quantumTime = 0;
 
                         if(!diedList.contains(currentProcess)){
                             diedList.add(currentProcess);
                             int t = (curTime-currentProcess.arrivalTime);
-                            System.out.println(currentProcess.name + " Turn around time: " + (t));
-                            System.out.println(currentProcess.name +  " Waiting time: "+(t - currentProcess.burstTime) );
+                            int c = currentProcess.burstTime;
 
-                            turnAroundTime.add(t);
-                            waitingTime.add(t - currentProcess.burstTime);
+                            turnTime.put(currentProcess.name, t);
+                            waitTime.put(currentProcess.name, (t-c));
 
                         }
-                        System.out.print("(");
-                        for (int i=0;i<processes.size();i++){
-                            if(!currentProcess.name.equals(processes.get(i).name)) {
-                                System.out.print(processes.get(i).name+ ":" +processes.get(i).quantumTime + ", ");
-                            }
-                            else{
-                                System.out.print(currentProcess.quantumTime +", ");
-                            }
-                        }
-                        System.out.println(")");
+                        
+                        printHistory();
 
                         curProcess.remove(currentProcess);
                         currentProcess = queueProcess.poll();
@@ -319,11 +286,7 @@ class AGSchedule {
                         curProcess.removeIf(process -> process.name.equals(finalCurrentProcess.name));
 
                         curProcess.add(currentProcess);
-                        System.out.print("(");
-                        for (int i=0;i<processes.size();i++){
-                            System.out.print(processes.get(i).name+ ":" +processes.get(i).quantumTime + ", ");
-                        }
-                        System.out.println(")");
+                       printHistory();
 
                         queueProcess.add(currentProcess);
                         currentProcess.status = true;
@@ -340,46 +303,44 @@ class AGSchedule {
                                 currentProcess.status = false;
                             }
                         }
-
                         fTimeForCurrentProcess = true;
-
                         continue;
                     }
-
-
                     // currentProcess will execute for one second
-//                    System.out.println(curTime);
-//                    System.out.println(currentProcess.name);
                     curTime++;
                     currentProcess.remainingBurstTime -= 1;
                     lastExecuteTime += 1;
-//                    System.out.println(curTime);
-
-
-
-
                 }
             }
         }
-        int avgAroundTime=0;
-        for (Integer value : turnAroundTime) {
+
+        ////////////////////Printing//////////////////////////
+        
+        print(turnTime, waitTime);
+
+        double avgAroundTime=0;
+        for (double value : turnTime.values()) {
             avgAroundTime += value;
         }
-        System.out.println("Average turn around time = " + (avgAroundTime/turnAroundTime.size()));
+        System.out.println("----------------------------------------------------------------");
 
-        int avgwaitingTime=0;
+        System.out.println("Average turn around time = " + (avgAroundTime/turnTime.size()));
 
-        for (Integer integer : waitingTime) {
+        double avgwaitingTime=0;
+
+        for (double integer : waitTime.values()) {
             avgwaitingTime += integer;
         }
-        System.out.println("Average waiting time = " + (avgwaitingTime/waitingTime.size()));
+        System.out.println("----------------------------------------------------------------");
 
+        System.out.println("Average waiting time = " + (avgwaitingTime/waitTime.size()));
+
+        System.out.println("----------------------------------------------------------------");
 
         System.out.println("Execution order: ");
         for (Process process : diedList) {
             System.out.print(process.name + " ");
         }
-//        print(turnAroundTime);
     }
 }
 
