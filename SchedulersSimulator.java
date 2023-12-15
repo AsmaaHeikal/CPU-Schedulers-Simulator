@@ -53,6 +53,9 @@ class Process {
     void setWaitingTime(int waitingTime){
         this.waitingTime = waitingTime;
     }
+    public int getBurstTime() {
+        return burstTime;
+    }
 }
 
 //Non-Preemptive Shortest-Job First (SJF) (using context switching)
