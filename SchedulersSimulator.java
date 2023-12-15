@@ -6,25 +6,41 @@ class Process {
     int arrivalTime;
     int burstTime;
     int priorityNumber;
+    int finishTime;
+    boolean isFinished;
+    int turnAroundTime;
+    int waitingTime;
     public Process(String name, String color, int arrivalTime, int burstTime, int priorityNumber) {
         this.name = name;
         this.color = color;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.priorityNumber = priorityNumber;
+        finishTime = 0;
+        isFinished = false;
+        turnAroundTime = 0;
+        waitingTime = 0;
     }
     void getProcessInfo(){
-        System.out.print("Enter the process name: ");
+        System.out.print("process name, color, arrival time, burst time, priority number: ");
         Scanner scanner = new Scanner(System.in);
-        name = scanner.nextLine();
-        System.out.print("Enter the process color: ");
-        color = scanner.nextLine();
-        System.out.print("Enter the process arrival time: ");
+        name = scanner.next();
+        color = scanner.next();
         arrivalTime = scanner.nextInt();
-        System.out.print("Enter the process burst time: ");
         burstTime = scanner.nextInt();
-        System.out.print("Enter the process priority number: ");
         priorityNumber = scanner.nextInt();
+    }
+    void setFinishTime(int finishTime){
+        this.finishTime = finishTime;
+    }
+    void setIsFinished(boolean isFinished){
+        this.isFinished = isFinished;
+    }
+    void setTurnAroundTime(int turnAroundTime){
+        this.turnAroundTime = turnAroundTime;
+    }
+    void setWaitingTime(int waitingTime){
+        this.waitingTime = waitingTime;
     }
 }
 
@@ -37,7 +53,23 @@ class SJF{
         this.contextSwitching = contextSwitching;
     }
     //Sort the processes according to their arrival time and if equal then according to their burst time
-    void sortProcesses(){
+    void sortFinishTime(){
+        Collections.sort(processes, new Comparator<Process>() {
+            @Override
+            public int compare(Process o1, Process o2) {
+                return o1.finishTime - o2.finishTime;
+            }
+        });
+    }
+    void sortArrival(){
+        Collections.sort(processes, new Comparator<Process>() {
+            @Override
+            public int compare(Process o1, Process o2) {
+                return o1.arrivalTime - o2.arrivalTime;
+            }
+        });
+    }
+    void sortArrivalBurst(){
         Collections.sort(processes, new Comparator<Process>() {
             @Override
             public int compare(Process o1, Process o2) {
@@ -48,46 +80,60 @@ class SJF{
             }
         });
     }
-    void execute(){
-        sortProcesses();
-        System.out.println("----------Processes execution order----------");
-        for(int i = 0; i < processes.size(); i++){
-            System.out.print(processes.get(i).name+" ");
+    void execute() {
+        sortArrivalBurst();
+        processes.get(0).setFinishTime(processes.get(0).arrivalTime + processes.get(0).burstTime);
+        processes.get(0).setIsFinished(true);
+        for(int i=1;i<processes.size();i++){
+            ArrayList<Process> waitingQueue = new ArrayList<>();
+            int finishTime = processes.get(i-1).finishTime;
+            for(int j=0;j<processes.size();j++){
+                if(!processes.get(j).isFinished && processes.get(j).arrivalTime <= finishTime){
+                    waitingQueue.add(processes.get(j));
+                }
+            }
+            //sort the waiting queue according to their burst time and if equal then according to their arrival time
+            Collections.sort(waitingQueue, new Comparator<Process>() {
+                @Override
+                public int compare(Process o1, Process o2) {
+                    if(o1.burstTime == o2.burstTime){
+                        return o1.arrivalTime - o2.arrivalTime;
+                    }
+                    return o1.burstTime - o2.burstTime;
+                }
+            });
+            for(int j=0,k=i;j<waitingQueue.size();j++){
+                processes.set(k++, waitingQueue.get(j));
+            }
+            processes.get(i).setIsFinished(true);
+            if(processes.get(i).arrivalTime > processes.get(i-1).finishTime){
+                processes.get(i).setFinishTime(processes.get(i).arrivalTime + processes.get(i).burstTime);
+            }
+            else{
+                processes.get(i).setFinishTime(processes.get(i-1).finishTime + processes.get(i).burstTime);
+            }
         }
-        System.out.println();
-        ArrayList<Integer>processesWaitingTime = new ArrayList<>();
-        ArrayList<Integer>processesTurnaroundTime = new ArrayList<>();
-        //print the waiting time for each process
-        System.out.println("----------Waiting time for each process----------");
-        int time = 0;
-        for(int i = 0; i < processes.size(); i++){
-            System.out.print((time - processes.get(i).arrivalTime)+" ");
-            processesWaitingTime.add(time - processes.get(i).arrivalTime);
-            time += processes.get(i).burstTime + contextSwitching;
+        for(int i=0;i<processes.size();i++){
+            processes.get(i).setTurnAroundTime(processes.get(i).finishTime+ (contextSwitching*i) - processes.get(i).arrivalTime);
         }
-        //print the turnaround time for each process
-        //turnaround time = waiting time + burst time
-        System.out.println();
-        System.out.println("----------Turnaround time for each process----------");
-        time = 0;
-        for(int i = 0; i < processes.size(); i++){
-            System.out.print((time - processes.get(i).arrivalTime + processes.get(i).burstTime)+" ");
-            processesTurnaroundTime.add(time - processes.get(i).arrivalTime + processes.get(i).burstTime);
-            time += processes.get(i).burstTime + contextSwitching;
+        for(int i=0;i<processes.size();i++){
+            processes.get(i).setWaitingTime(processes.get(i).turnAroundTime - processes.get(i).burstTime);
         }
-        System.out.println();
-        //print the average waiting time
-        int sum = 0;
-        for(int i = 0; i < processesWaitingTime.size(); i++){
-            sum += processesWaitingTime.get(i);
+        sortFinishTime();
+        //Print the processes in the first column and their waiting time in the second column and their turn around time in the third column
+        System.out.println("Process\t\tWaiting Time\t\tTurn Around Time");
+        for(int i=0;i<processes.size();i++){
+            System.out.println(processes.get(i).name+"\t\t\t\t"+processes.get(i).waitingTime+"\t\t\t\t\t"+processes.get(i).turnAroundTime);
         }
-        System.out.println("Average waiting time: "+(sum/processesWaitingTime.size()));
-        //print the average turnaround time
-        sum = 0;
-        for(int i = 0; i < processesTurnaroundTime.size(); i++){
-            sum += processesTurnaroundTime.get(i);
+        //print the average waiting time and average turn around time
+        int totalWaitingTime = 0;
+        int totalTurnAroundTime = 0;
+        for(int i=0;i<processes.size();i++){
+            totalWaitingTime += processes.get(i).waitingTime;
+            totalTurnAroundTime += processes.get(i).turnAroundTime;
         }
-        System.out.println("Average turnaround time: "+(sum/processesTurnaroundTime.size()));
+        System.out.println("Average Waiting Time: "+(totalWaitingTime/processes.size()));
+        System.out.println("Average Turn Around Time: "+(totalTurnAroundTime/processes.size()));
     }
 }
 
